@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { ApplicationModule } from './application/application.module.js';
 import { LoggerMiddleware } from './common/logger.middleware.js';
+import { WorkspacesModule } from './workspaces/workspaces.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -28,6 +30,10 @@ import { LoggerMiddleware } from './common/logger.middleware.js';
     }),
 
     ApplicationModule,
+
+    WorkspacesModule,
+
+    UsersModule,
   ],
 })
 export class AppModule implements NestModule {
