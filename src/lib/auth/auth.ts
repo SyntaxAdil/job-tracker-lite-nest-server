@@ -15,6 +15,7 @@ export const auth = betterAuth({
 
   emailAndPassword: { enabled: true },
   plugins: [jwt()],
+  baseURL: env.authUrl,
   trustedOrigins: [env.clientUrl, 'http://localhost:3000'],
   user: {
     additionalFields: {

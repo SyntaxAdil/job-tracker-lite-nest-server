@@ -10,4 +10,5 @@ export const env = {
   mongoUri: required('MONGO_URI'),
   authSecret: required('BETTER_AUTH_SECRET'),
   clientUrl: required('PUBLIC_CLIENT_URL'),
+  authUrl: required('BETTER_AUTH_URL'),
 };
