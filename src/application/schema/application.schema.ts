@@ -5,7 +5,7 @@ import { Workspaces } from '../../workspaces/schema/workspaces.schema.js';
 
 export type ApplicationDocument = HydratedDocument<Application>;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, strict: false })
 export class Application {
   @Prop({
     required: true,

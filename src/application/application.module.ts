@@ -3,6 +3,10 @@ import { ApplicationService } from './application.service.js';
 import { ApplicationController } from './application.controller.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Application, ApplicationSchema } from './schema/application.schema.js';
+import {
+  Workspaces,
+  WorkspacesSchema,
+} from '../workspaces/schema/workspaces.schema.js';
 
 @Module({
   imports: [
@@ -10,6 +14,10 @@ import { Application, ApplicationSchema } from './schema/application.schema.js';
       {
         name: Application.name,
         schema: ApplicationSchema,
+      },
+      {
+        name: Workspaces.name,
+        schema: WorkspacesSchema,
       },
     ]),
   ],

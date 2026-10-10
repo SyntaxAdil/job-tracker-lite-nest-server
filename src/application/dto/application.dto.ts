@@ -9,9 +9,10 @@ import {
 } from 'class-validator';
 
 export class CreateApplicationDto {
-  @IsString()
-  @IsNotEmpty()
-  workspaceId: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // workspaceId: string;
+
   @IsString()
   @IsNotEmpty()
   companyName: string;

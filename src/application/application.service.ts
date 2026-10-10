@@ -11,12 +11,15 @@ import { Model, Types } from 'mongoose';
 import { CreateApplicationDto } from './dto/application.dto.js';
 import { UpdateApplicationDtoTs } from './dto/update-application.dto.ts.js';
 import { AppModule } from '../app.module.js';
+import { Workspaces } from '../workspaces/schema/workspaces.schema.js';
 
 @Injectable()
 export class ApplicationService {
   constructor(
     @InjectModel(Application.name)
     private applicationModel: Model<Application>,
+    @InjectModel(Workspaces.name)
+    private workspaceModel: Model<Workspaces>,
   ) {}
 
   async createApplication(payload: CreateApplicationDto, workspaceId: string) {
@@ -31,10 +34,23 @@ export class ApplicationService {
       throw new ConflictException('Application already exists');
     }
 
-    return this.applicationModel.create({
+    const newApplicaiton = await this.applicationModel.create({
       ...payload,
       workspaceId,
     });
+
+    await this.workspaceModel.updateOne(
+      {
+        _id: workspaceId,
+      },
+      {
+        $addToSet: {
+          applications: newApplicaiton._id.toString(),
+        },
+      },
+    );
+
+    return newApplicaiton;
   }
 
   async findAll() {
@@ -60,6 +76,18 @@ export class ApplicationService {
 
   async deleteApplication(id: string) {
     const application = await this.findOne(id);
+
     await application.deleteOne();
+
+    await this.workspaceModel.updateOne(
+      {
+        _id: application.workspaceId,
+      },
+      {
+        $pull: {
+          applications: application._id,
+        },
+      },
+    );
   }
 }

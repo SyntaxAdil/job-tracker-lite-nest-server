@@ -35,12 +35,12 @@ export class ApplicationController {
     return this.applicationService.createApplication(data, workspaceId);
   }
 
-  @Patch()
+  @Patch(":id")
   updateOne(@Param('id') id: string, @Body() data: UpdateApplicationDtoTs) {
     return this.applicationService.updateApplication(id, data);
   }
 
-  @Delete()
+  @Delete(':id')
   deleteOne(@Param('id') id: string) {
     return this.applicationService.deleteApplication(id);
   }

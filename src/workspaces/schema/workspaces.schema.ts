@@ -34,7 +34,7 @@ export class Workspaces {
   ownerId: Types.ObjectId;
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: Application.name }],
+    type: [{ type: Types.ObjectId, ref: 'Application' }],
     default: [],
   })
   applications: Types.ObjectId[];
