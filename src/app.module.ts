@@ -1,38 +1,32 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
-import { ApplicationModule } from './application/application.module.js';
+import { AuthModule } from '@thallesp/nestjs-better-auth';
+import { env } from './config/env.js';
+import { auth } from './lib/auth/auth.js';
 import { LoggerMiddleware } from './common/logger.middleware.js';
+import { ApplicationModule } from './application/application.module.js';
 import { WorkspacesModule } from './workspaces/workspaces.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        uri: config.getOrThrow<string>('MONGO_URI'),
-        connectionFactory: (connection: Connection) => {
-          if (connection.readyState === 1) {
-            console.log('✅ MongoDB connected');
-          }
-          connection.on('error', (err: Error) => {
-            console.error('❌ MongoDB error:', err.message);
-          });
-          connection.on('disconnected', () => {
-            console.warn('⚠️ MongoDB disconnected');
-          });
-          return connection;
-        },
-      }),
+    MongooseModule.forRoot(env.mongoUri, {
+      connectionFactory: (connection) => {
+        if (connection.readyState === 1) {
+          console.log('✅ MongoDB connected');
+        }
+        connection.on('error', (err: Error) =>
+          console.error('❌ MongoDB error:', err.message),
+        );
+        connection.on('disconnected', () =>
+          console.warn('⚠️ MongoDB disconnected'),
+        );
+        return connection;
+      },
     }),
-
+    AuthModule.forRoot({ auth }),
     ApplicationModule,
-
     WorkspacesModule,
-
     UsersModule,
   ],
 })
