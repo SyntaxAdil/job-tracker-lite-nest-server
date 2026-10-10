@@ -8,7 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Application } from './schema/application.schema.js';
 import { Model, Types } from 'mongoose';
-import { CreateApplicationDto } from './dto/application.dto.ts.js';
+import { CreateApplicationDto } from './dto/application.dto.js';
 import { UpdateApplicationDtoTs } from './dto/update-application.dto.ts.js';
 import { AppModule } from '../app.module.js';
 

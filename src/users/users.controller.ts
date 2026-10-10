@@ -9,7 +9,10 @@ export class UsersController {
   constructor(@InjectModel(AuthUser.name) private userModel: Model<AuthUser>) {}
   @Get()
   async findAll() {
-    return await this.userModel.find().select("name image workspaces -_id").lean();
+    return await this.userModel
+      .find()
+      .select('name image workspaces -_id')
+      .lean();
   }
 
   @Get('me')

@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { type UserSession } from '@thallesp/nestjs-better-auth';
+import { Body, Controller, Get, Post, Session } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service.js';
+import { CreateWorkspacesDto } from './dto/workspaces.dto.js';
 
 @Controller('workspaces')
 export class WorkspacesController {
@@ -11,7 +13,14 @@ export class WorkspacesController {
   }
 
   @Post()
-  create(@Body() payload: any) {
-    return this.workspacesService.create(payload);
+  create(
+    @Body() payload: CreateWorkspacesDto,
+    userId: string,
+    @Session() session: UserSession,
+  ) {
+    return this.workspacesService.createWorkspace(
+      payload,
+      (userId = session.user.id),
+    );
   }
 }

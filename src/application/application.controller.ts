@@ -9,7 +9,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApplicationService } from './application.service.js';
-import { CreateApplicationDto } from './dto/application.dto.ts.js';
+import { CreateApplicationDto } from './dto/application.dto.js';
 import { UpdateApplicationDtoTs } from './dto/update-application.dto.ts.js';
 
 @Controller('applications')
