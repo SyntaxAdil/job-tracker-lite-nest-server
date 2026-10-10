@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { ValidationPipe } from '@nestjs/common';
 import { ResponseInterceptor } from './common/response.interceptor.js';
+import { env } from './config/env.js';
 const port = process.env.PORT ?? 3000;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -9,8 +10,8 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: 'http://localhost:3000',
-
+    origin: env.clientUrl,
+    credentials: true,
   });
   app.setGlobalPrefix('api');
 

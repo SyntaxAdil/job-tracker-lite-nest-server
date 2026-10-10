@@ -11,11 +11,11 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
   }),
-  //   secret: env.authSecret,
+  secret: env.authSecret,
 
   emailAndPassword: { enabled: true },
   plugins: [jwt()],
-  trustedOrigins: ['http://localhost:3000'],
+  trustedOrigins: [env.clientUrl, 'http://localhost:3000'],
   user: {
     additionalFields: {
       workspaces: {
