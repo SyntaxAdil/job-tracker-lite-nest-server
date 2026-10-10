@@ -1,11 +1,10 @@
-import { string } from 'better-auth';
+import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -17,31 +16,45 @@ import { UpdateApplicationDtoTs } from './dto/update-application.dto.ts.js';
 export class ApplicationController {
   constructor(private readonly applicationService: ApplicationService) {}
 
+  // get all applications of login user's workspaces
   @Get()
-  findAll() {
-    return this.applicationService.findAll();
+  findAll(@Session() session: UserSession) {
+    return this.applicationService.findAll(session.user.id);
   }
 
+  // get one application
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.applicationService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: UserSession) {
+    return this.applicationService.findOne(id, session.user.id);
   }
 
+  // create new application inside a workspace
   @Post('/workspace/:workspaceId')
   create(
     @Body() data: CreateApplicationDto,
     @Param('workspaceId') workspaceId: string,
+    @Session() session: UserSession,
   ) {
-    return this.applicationService.createApplication(data, workspaceId);
+    return this.applicationService.createApplication(
+      data,
+      workspaceId,
+      session.user.id,
+    );
   }
 
-  @Patch(":id")
-  updateOne(@Param('id') id: string, @Body() data: UpdateApplicationDtoTs) {
-    return this.applicationService.updateApplication(id, data);
+  // update one application
+  @Patch(':id')
+  updateOne(
+    @Param('id') id: string,
+    @Body() data: UpdateApplicationDtoTs,
+    @Session() session: UserSession,
+  ) {
+    return this.applicationService.updateApplication(id, data, session.user.id);
   }
 
+  // delete one application
   @Delete(':id')
-  deleteOne(@Param('id') id: string) {
-    return this.applicationService.deleteApplication(id);
+  deleteOne(@Param('id') id: string, @Session() session: UserSession) {
+    return this.applicationService.deleteApplication(id, session.user.id);
   }
 }

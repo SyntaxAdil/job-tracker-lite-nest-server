@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,7 +9,6 @@ import { Application } from './schema/application.schema.js';
 import { Model, Types } from 'mongoose';
 import { CreateApplicationDto } from './dto/application.dto.js';
 import { UpdateApplicationDtoTs } from './dto/update-application.dto.ts.js';
-import { AppModule } from '../app.module.js';
 import { Workspaces } from '../workspaces/schema/workspaces.schema.js';
 
 @Injectable()
@@ -22,9 +20,24 @@ export class ApplicationService {
     private workspaceModel: Model<Workspaces>,
   ) {}
 
-  async createApplication(payload: CreateApplicationDto, workspaceId: string) {
+  // creating a new application inside a workspace
+  async createApplication(
+    payload: CreateApplicationDto,
+    workspaceId: string,
+    userId: string,
+  ) {
+    // workspace must belong to the login user
+    const workspace = await this.workspaceModel.findOne({
+      _id: workspaceId,
+      ownerId: userId,
+    });
+    if (!workspace) throw new NotFoundException('Workspace not found.');
+
     const { companyName, jobType, position } = payload;
+
+    // duplicate check only inside this workspace
     const findExistingJob = await this.applicationModel.findOne({
+      workspaceId,
       companyName,
       jobType,
       position,
@@ -53,29 +66,51 @@ export class ApplicationService {
     return newApplicaiton;
   }
 
-  async findAll() {
-    return await this.applicationModel.find();
+  // find all applications of login user's workspaces
+  async findAll(userId: string) {
+    const workspaces = await this.workspaceModel
+      .find({ ownerId: userId })
+      .select('_id');
+
+    const workspaceIds = workspaces.map((w) => w._id);
+
+    return await this.applicationModel.find({
+      workspaceId: { $in: workspaceIds },
+    });
   }
 
-  async findOne(id: string) {
+  // find one application (only if its workspace belongs to the user)
+  async findOne(id: string, userId: string) {
     if (!Types.ObjectId.isValid(id))
       throw new BadRequestException('Invalid application id');
     const find = await this.applicationModel.findById(id);
     if (!find) throw new NotFoundException('No Application found.');
 
+    const workspace = await this.workspaceModel.findOne({
+      _id: find.workspaceId,
+      ownerId: userId,
+    });
+    if (!workspace) throw new NotFoundException('No Application found.');
+
     return find;
   }
 
-  async updateApplication(id: string, payload: UpdateApplicationDtoTs) {
-    const applicaiton = await this.findOne(id);
+  // update an application
+  async updateApplication(
+    id: string,
+    payload: UpdateApplicationDtoTs,
+    userId: string,
+  ) {
+    const applicaiton = await this.findOne(id, userId);
 
     Object.assign(applicaiton, payload);
 
     return applicaiton.save();
   }
 
-  async deleteApplication(id: string) {
-    const application = await this.findOne(id);
+  // delete an application
+  async deleteApplication(id: string, userId: string) {
+    const application = await this.findOne(id, userId);
 
     await application.deleteOne();
 
