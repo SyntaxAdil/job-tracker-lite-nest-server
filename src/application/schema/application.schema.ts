@@ -1,10 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+import { WorkspacesService } from '../../workspaces/workspaces.service.js';
+import { Workspaces } from '../../workspaces/schema/workspaces.schema.js';
 
 export type ApplicationDocument = HydratedDocument<Application>;
 
 @Schema({ timestamps: true })
 export class Application {
+  @Prop({
+    required: true,
+    index: true,
+    ref: Workspaces.name,
+    type: Types.ObjectId,
+  })
+  workspaceId: Types.ObjectId;
+
   @Prop({ required: true, trim: true })
   companyName: string;
 

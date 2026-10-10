@@ -1,3 +1,4 @@
+import { string } from 'better-auth';
 import {
   Body,
   Controller,
@@ -26,9 +27,12 @@ export class ApplicationController {
     return this.applicationService.findOne(id);
   }
 
-  @Post()
-  create(@Body() data: CreateApplicationDto) {
-    return this.applicationService.createApplication(data);
+  @Post('/workspace/:workspaceId')
+  create(
+    @Body() data: CreateApplicationDto,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.applicationService.createApplication(data, workspaceId);
   }
 
   @Patch()

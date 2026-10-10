@@ -11,6 +11,9 @@ import {
 export class CreateApplicationDto {
   @IsString()
   @IsNotEmpty()
+  workspaceId: string;
+  @IsString()
+  @IsNotEmpty()
   companyName: string;
 
   @IsString()

@@ -19,7 +19,7 @@ export class ApplicationService {
     private applicationModel: Model<Application>,
   ) {}
 
-  async createApplication(payload: CreateApplicationDto) {
+  async createApplication(payload: CreateApplicationDto, workspaceId: string) {
     const { companyName, jobType, position } = payload;
     const findExistingJob = await this.applicationModel.findOne({
       companyName,
@@ -31,7 +31,10 @@ export class ApplicationService {
       throw new ConflictException('Application already exists');
     }
 
-    return this.applicationModel.create(payload);
+    return this.applicationModel.create({
+      ...payload,
+      workspaceId,
+    });
   }
 
   async findAll() {
