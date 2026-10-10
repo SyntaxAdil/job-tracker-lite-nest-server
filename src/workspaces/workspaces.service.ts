@@ -20,15 +20,34 @@ export class WorkspacesService {
     @InjectModel(AuthUser.name)
     private userModel: Model<AuthUser>,
   ) {}
+
+  //find all workspaces -
   async findAll() {
-    return await this.workspaceModel.find();
+    return await this.workspaceModel
+      .find()
+      .select('name description ownerId applications isArchived')
+      .lean();
   }
 
+  //find login user's workspaces - with archive filtering support
+  async findMyWs(id: string, isArchived?: boolean) {
+    const query: { ownerId: string; isArchived?: boolean } = { ownerId: id };
+    if (isArchived !== undefined) {
+      query.isArchived = isArchived;
+    }
+    const ws = await this.workspaceModel.find(query);
+    if (!ws) throw new NotFoundException('No workspaces created by the user.');
+    return ws;
+  }
+
+  // one particular workspace finding api
   async findOneWorkspace(id: string) {
     const ws = await this.workspaceModel.findById(id);
     if (!ws) throw new NotFoundException('No workspace found.');
     return ws;
   }
+
+  // creating a new workspace api
   async createWorkspace(payload: CreateWorkspacesDto, userId: string) {
     const { name, isArchived } = payload;
     const existingWorkspace = await this.workspaceModel.findOne({
@@ -57,6 +76,7 @@ export class WorkspacesService {
     return newWorkspace;
   }
 
+  // delte completly a workspace
   async deleteWorkspace(id: string, userId: string) {
     const ws = await this.findOneWorkspace(id);
     await this.userModel.updateOne(
@@ -70,6 +90,7 @@ export class WorkspacesService {
     await ws.deleteOne();
   }
 
+  // update a workspace without isArchived
   async updateWorkspace(id: string, data: UpdateWorkspacesDto) {
     const ws = await this.findOneWorkspace(id);
     Object.assign(ws, data);
@@ -77,6 +98,7 @@ export class WorkspacesService {
     return ws;
   }
 
+  // api for toggling isArchived - true <-> false
   async archiveWorkspace(id: string) {
     const ws = await this.findOneWorkspace(id);
     ws.isArchived = !ws.isArchived;

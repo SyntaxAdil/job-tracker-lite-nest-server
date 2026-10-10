@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Session,
 } from '@nestjs/common';
 import { WorkspacesService } from './workspaces.service.js';
@@ -17,11 +18,22 @@ import { UpdateWorkspacesDto } from './dto/update-workspaces.dto.js';
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
+  // get all workspaces
   @Get()
   findAll() {
     return this.workspacesService.findAll();
   }
 
+  // get login users ws
+  @Get('me')
+  findMyWs(
+    @Session() session: UserSession,
+    @Query('archive') archive?: boolean,
+  ) {
+    return this.workspacesService.findMyWs(session.user.id, archive);
+  }
+
+  // create new workspace
   @Post()
   create(
     @Body() payload: CreateWorkspacesDto,
@@ -34,25 +46,27 @@ export class WorkspacesController {
     );
   }
 
+  // get one ws
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.workspacesService.findOneWorkspace(id);
   }
 
+  // update one ws
   @Patch()
-  updateOne(@Param("id") id:string, @Body() data:UpdateWorkspacesDto){
-    return this.workspacesService.updateWorkspace(id,data)
+  updateOne(@Param('id') id: string, @Body() data: UpdateWorkspacesDto) {
+    return this.workspacesService.updateWorkspace(id, data);
   }
 
-  @Patch(":id/archive")
-  archiveWorkspace(@Param("id") id:string){
-    return this.workspacesService.archiveWorkspace(id)
+  // archive a workspace (toggling)
+  @Patch(':id/archive')
+  archiveWorkspace(@Param('id') id: string) {
+    return this.workspacesService.archiveWorkspace(id);
   }
 
+  // delete a complete ws
   @Delete(':id')
   delete(@Param('id') id: string, @Session() session: UserSession) {
     return this.workspacesService.deleteWorkspace(id, session.user.id);
   }
-
-
 }
