@@ -1,108 +1,90 @@
-import { UserSession } from '@thallesp/nestjs-better-auth';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
-  Session,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Workspaces } from './schema/workspaces.schema.js';
-import { InjectModel } from '@nestjs/mongoose';
-import { CreateWorkspacesDto } from './dto/workspaces.dto.js';
 import { AuthUser } from '../users/schema/auth.user.schema.js';
+import { CreateWorkspacesDto } from './dto/workspaces.dto.js';
 import { UpdateWorkspacesDto } from './dto/update-workspaces.dto.js';
 
 @Injectable()
 export class WorkspacesService {
   constructor(
-    @InjectModel(Workspaces.name)
-    private workspaceModel: Model<Workspaces>,
-    @InjectModel(AuthUser.name)
-    private userModel: Model<AuthUser>,
+    @InjectModel(Workspaces.name) private workspaceModel: Model<Workspaces>,
+    @InjectModel(AuthUser.name) private userModel: Model<AuthUser>,
   ) {}
 
-  //find all workspaces -
-  async findAll() {
-    return await this.workspaceModel
+  private async findOwned(id: string, userId: string) {
+    const ws = await this.workspaceModel.findOne({ _id: id, ownerId: userId });
+    if (!ws) throw new NotFoundException('Workspace not found.');
+    return ws;
+  }
+
+  findAll() {
+    return this.workspaceModel
       .find()
       .select('name description ownerId applications isArchived')
       .lean();
   }
 
-  //find login user's workspaces - with archive filtering support
-  async findMyWs(id: string, isArchived?: boolean) {
-    const query: { ownerId: string; isArchived?: boolean } = { ownerId: id };
-    if (isArchived !== undefined) {
-      query.isArchived = isArchived;
-    }
-    const ws = await this.workspaceModel.find(query);
-    if (!ws) throw new NotFoundException('No workspaces created by the user.');
-    return ws;
-  }
-
-  // one particular workspace finding api
-  async findOneWorkspace(id: string) {
-    const ws = await this.workspaceModel.findById(id);
-    if (!ws) throw new NotFoundException('No workspace found.');
-    return ws;
-  }
-
-  // creating a new workspace api
-  async createWorkspace(payload: CreateWorkspacesDto, userId: string) {
-    const { name, isArchived } = payload;
-    const existingWorkspace = await this.workspaceModel.findOne({
-      name,
-      isArchived,
-    });
-    if (existingWorkspace)
-      throw new ConflictException('Workspace already exists');
-
-    const newWorkspace = await this.workspaceModel.create({
-      ...payload,
+  findMyWs(userId: string, isArchived?: boolean) {
+    const query: { ownerId: string; isArchived?: boolean } = {
       ownerId: userId,
-      applications: [],
-    });
-
-    await this.userModel.updateOne(
-      {
-        _id: userId,
-      },
-      {
-        $addToSet: {
-          workspaces: newWorkspace._id.toString(),
-        },
-      },
-    );
-    return newWorkspace;
+    };
+    if (isArchived !== undefined) query.isArchived = isArchived;
+    return this.workspaceModel.find(query).sort({ createdAt: -1 });
   }
 
-  // delte completly a workspace
-  async deleteWorkspace(id: string, userId: string) {
-    const ws = await this.findOneWorkspace(id);
+  findOneWorkspace(id: string, userId: string) {
+    return this.findOwned(id, userId);
+  }
+
+  async createWorkspace(payload: CreateWorkspacesDto, userId: string) {
+    let ws;
+    try {
+      ws = await this.workspaceModel.create({
+        ...payload,
+        ownerId: userId,
+        applications: [],
+      });
+    } catch (e: any) {
+      if (e.code === 11000) {
+        throw new ConflictException('Workspace already exists');
+      }
+      throw e;
+    }
+
     await this.userModel.updateOne(
       { _id: userId },
-      {
-        $pull: {
-          applications: ws._id,
-        },
-      },
+      { $addToSet: { workspaces: ws._id.toString() } },
     );
-    await ws.deleteOne();
+    return ws;
   }
 
-  // update a workspace without isArchived
-  async updateWorkspace(id: string, data: UpdateWorkspacesDto) {
-    const ws = await this.findOneWorkspace(id);
+  async updateWorkspace(id: string, data: UpdateWorkspacesDto, userId: string) {
+    const ws = await this.findOwned(id, userId);
     Object.assign(ws, data);
-    ws.save();
+    await ws.save();
     return ws;
   }
 
-  // api for toggling isArchived - true <-> false
-  async archiveWorkspace(id: string) {
-    const ws = await this.findOneWorkspace(id);
+  async archiveWorkspace(id: string, userId: string) {
+    const ws = await this.findOwned(id, userId);
     ws.isArchived = !ws.isArchived;
-    ws.save();
+    await ws.save();
     return ws;
+  }
+
+  async deleteWorkspace(id: string, userId: string) {
+    const ws = await this.findOwned(id, userId);
+    await ws.deleteOne();
+    await this.userModel.updateOne(
+      { _id: userId },
+      { $pull: { workspaces: id } },
+    );
+    return { deleted: true };
   }
 }
