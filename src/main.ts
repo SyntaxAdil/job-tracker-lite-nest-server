@@ -24,7 +24,8 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  await app.listen(port, () => {
+  app.enableShutdownHooks();
+  await app.listen(port, '0.0.0.0', () => {
     console.log('Server is runnign on port: ' + port);
   });
 }

@@ -7,6 +7,7 @@ import { LoggerMiddleware } from './common/logger.middleware.js';
 import { ApplicationModule } from './application/application.module.js';
 import { WorkspacesModule } from './workspaces/workspaces.module.js';
 import { UsersModule } from './users/users.module.js';
+import { HealthModule } from './health/health.module.js';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module.js';
     ApplicationModule,
     WorkspacesModule,
     UsersModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {
