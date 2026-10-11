@@ -1,24 +1,24 @@
 # dependences
-FROM oven/bun:1 AS deps
+FROM oven/bun:1.4.1 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile 
 
 # build
-FROM oven/bun:1 AS builder
+FROM oven/bun:1.4.1 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN bun run build
 
 #production-dependences
-FROM oven/bun:1 AS pro-deps
+FROM oven/bun:1.4.1 AS pro-deps
 WORKDIR /app 
 COPY package.json bun.lock  ./
 RUN bun  install --frozen-lockfile --production
 
 # runner
-FROM oven/bun:1-slim AS runner
+FROM oven/bun:1.4.1-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=pro-deps --chown=bun:bun /app/node_modules ./node_modules
