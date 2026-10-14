@@ -11,6 +11,4 @@ export class CreateWorkspacesDto {
   @MinLength(1)
   description?: string;
 
-  @IsBoolean()
-  isArchived: boolean;
 }

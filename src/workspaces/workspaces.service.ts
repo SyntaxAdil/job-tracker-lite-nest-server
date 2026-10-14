@@ -51,6 +51,7 @@ export class WorkspacesService {
         ...payload,
         ownerId: userId,
         applications: [],
+        isArchived: false,
       });
     } catch (e: any) {
       if (e.code === 11000) {
