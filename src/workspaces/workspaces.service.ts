@@ -9,12 +9,14 @@ import { Workspaces } from './schema/workspaces.schema.js';
 import { AuthUser } from '../users/schema/auth.user.schema.js';
 import { CreateWorkspacesDto } from './dto/workspaces.dto.js';
 import { UpdateWorkspacesDto } from './dto/update-workspaces.dto.js';
+import { Application } from '../application/schema/application.schema.js';
 
 @Injectable()
 export class WorkspacesService {
   constructor(
     @InjectModel(Workspaces.name) private workspaceModel: Model<Workspaces>,
     @InjectModel(AuthUser.name) private userModel: Model<AuthUser>,
+    @InjectModel(Application.name) private applicationModel: Model<Application>,
   ) {}
 
   private async findOwned(id: string, userId: string) {
@@ -80,11 +82,14 @@ export class WorkspacesService {
 
   async deleteWorkspace(id: string, userId: string) {
     const ws = await this.findOwned(id, userId);
+
+    await this.applicationModel.deleteMany({ workspaceId: ws._id });
     await ws.deleteOne();
     await this.userModel.updateOne(
       { _id: userId },
       { $pull: { workspaces: id } },
     );
+
     return { deleted: true };
   }
 }
