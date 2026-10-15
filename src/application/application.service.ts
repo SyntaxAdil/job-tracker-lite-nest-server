@@ -120,7 +120,7 @@ export class ApplicationService {
       },
       {
         $pull: {
-          applications: application._id,
+          applications: application._id.toString(),
         },
       },
     );

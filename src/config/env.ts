@@ -11,5 +11,5 @@ export const env = {
   authSecret: required('BETTER_AUTH_SECRET'),
   clientUrl: required('PUBLIC_CLIENT_URL'),
   authUrl: required('BETTER_AUTH_URL'),
-  port: required('PORT'),
+  port: Number(process.env.PORT) || 3000,
 };
