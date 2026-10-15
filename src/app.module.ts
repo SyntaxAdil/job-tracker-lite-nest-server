@@ -12,6 +12,9 @@ import { HealthModule } from './health/health.module.js';
 @Module({
   imports: [
     MongooseModule.forRoot(env.mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+      retryAttempts: 1,
+      retryDelay: 1000,
       connectionFactory: (connection) => {
         if (connection.readyState === 1) {
           console.log('✅ MongoDB connected');
